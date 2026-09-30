@@ -65,7 +65,9 @@
   .warn { color:#993c1d; background:#faece7; border-radius:8px; padding:10px 14px; margin-top:12px; font-size:13px; }
   .warn.dark { background:#3a2d1a; color:#f0d78c; }
   h2 { font-size:15px; font-weight:500; margin:26px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--bd); }
-  h3.grp { font-size:13px; font-weight:500; margin:16px 0 6px; color:#5f5e5a; }
+  h3.grp { font-size:13px; font-weight:600; margin:18px 0 8px; color:var(--tx); letter-spacing:.3px;
+           padding:7px 12px; background:var(--bg); border:1px solid var(--bd);
+           border-left:3px solid var(--accent); border-radius:6px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
   .card { border:1px solid var(--bd); border-radius:12px; padding:14px 16px; background:var(--card); margin-bottom:12px; }
   .hd { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; }
@@ -75,6 +77,19 @@
                   box-shadow:inset 0 0 0 1px rgba(128,128,128,.55); }
   .themebar .sw:hover { transform:scale(1.14); }
   .themebar .sw.on { border-color:var(--tx); }
+  .ttl-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+             margin:26px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--bd); }
+  .ttl-row h2 { margin:0; padding:0; border:none; }
+  .seg { display:inline-flex; padding:3px; background:var(--bg); border:1px solid var(--bd); border-radius:10px;
+         box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .seg button { border:none; background:transparent; color:var(--ts); font-size:13px; font-weight:500;
+                padding:7px 16px; border-radius:8px; cursor:pointer; white-space:nowrap;
+                letter-spacing:.3px; -webkit-tap-highlight-color:transparent;
+                transition:background .16s, color .16s, box-shadow .16s, transform .16s; }
+  .seg button:hover { color:var(--tx); background:rgba(128,128,128,.1); }
+  .seg button.on { background:var(--accent); color:var(--accent-tx); font-weight:600;
+                   box-shadow:0 2px 8px rgba(var(--accent-rgb),.35); }
+  .seg button.on:hover { background:var(--accent); color:var(--accent-tx); }
   .card h3 { font-size:13.5px; font-weight:500; margin:0 0 6px; }
   .card h2 { border:none; padding:0; margin:0 0 6px; }
   .card h2 small { font-weight:400; color:#888; font-size:12px; }
@@ -389,13 +404,25 @@
   </section>
 
   <section id="p3" class="pane">
-    <h2>武将全图鉴 · 59 名 <button class="btn gray" id="genGroupBtn" style="font-size:12px;padding:4px 12px;">按兵种显示</button></h2>
+    <div class="ttl-row">
+      <h2>武将全图鉴 · 59 名</h2>
+      <div class="seg" id="genSeg">
+        <button class="on" data-mode="rarity">按稀有度</button>
+        <button data-mode="troop">按兵种</button>
+      </div>
+    </div>
     <p class="foot" style="margin:0 0 10px;">数据取自游戏 <code>ELITE_POOL</code>（29 名精锐，酒馆高级池）+ <code>TAVERN_POOL</code>（30 名杂牌）。B 级里标「精锐」的才是酒馆能抽到的高级货。</p>
     <div id="codexGen"></div>
   </section>
 
   <section id="p4" class="pane">
-    <h2>装备全图鉴 · 29 件 <button class="btn gray" id="eqGroupBtn" style="font-size:12px;padding:4px 12px;">按部位显示</button></h2>
+    <div class="ttl-row">
+      <h2>装备全图鉴 · 29 件</h2>
+      <div class="seg" id="eqSeg">
+        <button class="on" data-mode="rarity">按稀有度</button>
+        <button data-mode="slot">按部位</button>
+      </div>
+    </div>
     <p class="foot" style="margin:0 0 10px;">新版统一进一个 <code>EQUIP_POOL</code>，铁匠铺刷新和关卡掉落都从这里取。倚天剑是全游戏最强武器（攻 +60，卖价 6000 两），第 14 关「灭蜀之战」稀有掉落。</p>
     <div id="codexEq"></div>
   </section>
@@ -1828,12 +1855,22 @@ function tagHtml(r) {
 
   var genMode = 'rarity';
   renderGen(genMode);
-  var tg = document.getElementById('genGroupBtn');
-  if (tg) tg.onclick = function () {
-    genMode = genMode === 'rarity' ? 'troop' : 'rarity';
-    renderGen(genMode);
-    this.textContent = genMode === 'rarity' ? '按兵种显示' : '按等级显示';
-  };
+  var sg = document.getElementById('genSeg');
+  if (sg) {
+    var gb = sg.querySelectorAll('button');
+    for (var i = 0; i < gb.length; i++) {
+      gb[i].onclick = function () {
+        var m = this.getAttribute('data-mode');
+        if (m === genMode) return;
+        genMode = m;
+        for (var j = 0; j < gb.length; j++) {
+          if (gb[j].getAttribute('data-mode') === m) gb[j].classList.add('on');
+          else gb[j].classList.remove('on');
+        }
+        renderGen(genMode);
+      };
+    }
+  }
 
   /* 获取来源（读自游戏源码）：关卡 20% 稀有掉落 + 铁匠铺刷新购买 */
   var STAGE_DROPS = { '太平要术': '第3关 斩杀张角', '方天画戟': '第5关 虎牢关之战', '青釭剑': '第8关 官渡之战', '连环铠': '第9关 赤壁之战', '的卢马': '第11关 夷陵之战', '七星刀': '第12关 五丈原', '诸葛连弩': '第13关 沓中之战', '倚天剑': '第14关 灭蜀之战', '孙子兵法': '第15关 金陵王气' };
@@ -1876,12 +1913,22 @@ function tagHtml(r) {
 
   var eqMode = 'rarity';
   renderEq(eqMode);
-  var te = document.getElementById('eqGroupBtn');
-  if (te) te.onclick = function () {
-    eqMode = eqMode === 'rarity' ? 'slot' : 'rarity';
-    renderEq(eqMode);
-    this.textContent = eqMode === 'rarity' ? '按部位显示' : '按稀有度显示';
-  };
+  var se = document.getElementById('eqSeg');
+  if (se) {
+    var eb = se.querySelectorAll('button');
+    for (var k = 0; k < eb.length; k++) {
+      eb[k].onclick = function () {
+        var m = this.getAttribute('data-mode');
+        if (m === eqMode) return;
+        eqMode = m;
+        for (var q = 0; q < eb.length; q++) {
+          if (eb[q].getAttribute('data-mode') === m) eb[q].classList.add('on');
+          else eb[q].classList.remove('on');
+        }
+        renderEq(eqMode);
+      };
+    }
+  }
 })();
 </script>
 <script>
