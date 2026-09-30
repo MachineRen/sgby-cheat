@@ -1819,11 +1819,16 @@ function tagHtml(r) {
   var orders = ['SS', 'S', 'A', 'B', 'C'];
   var TROOPS = ['cavalry', 'archer', 'special', 'infantry'];
 
+  var GEN_HEAD = '<tr><th style="width:70px;">等级</th><th style="width:118px;">武将</th><th>兵力</th>' +
+    '<th style="width:38px;">攻</th><th style="width:38px;">防</th><th style="width:38px;">速</th>' +
+    '<th style="width:62px;">兵种</th><th style="width:100px;">技能</th><th>效果</th></tr>';
+
   function genRow(g, r) {
     return '<tr class="' + r.toLowerCase() + '"><td>' + tagHtml(r) + '</td><td>' +
       (g.t === '杂牌' ? '<span style="color:#999;">杂牌</span> ' : '<span style="color:#8b6914;">精锐</span> ') +
       g.n + '</td><td>' + g.hp + '</td><td>' + g.atk + '</td><td>' + g.def + '</td><td>' + g.spd +
-      '</td><td><span style="color:' + TROOP_COLOR[g.tr] + ';">' + TROOP_NAME[g.tr] + '</span></td>' +
+      '</td><td style="white-space:nowrap;"><span style="color:' + TROOP_COLOR[g.tr] + ';">' +
+      TROOP_NAME[g.tr] + '</span></td>' +
       '<td>' + g.sk + '</td><td>' + g.sd + '</td></tr>';
   }
   function renderGen(mode) {
@@ -1835,7 +1840,7 @@ function tagHtml(r) {
         var rs = ['SS', 'S', 'A', 'B'].filter(function (r) { return list.some(function (g) { return g.r === r; }); });
         list.sort(function (a, b) { return rs.indexOf(a.r) - rs.indexOf(b.r) || (a.t === '精锐' ? 0 : 1) - (b.t === '精锐' ? 0 : 1); });
         gh += '<h3 class="grp"><span style="color:' + TROOP_COLOR[t] + ';">' + TROOP_NAME[t] + '</span> · ' + list.length + ' 名</h3>';
-        gh += '<table><tr><th style="width:70px;">等级</th><th style="width:110px;">武将</th><th>兵力</th><th>攻</th><th>防</th><th>速</th><th style="width:46px;">兵种</th><th style="width:100px;">技能</th><th>效果</th></tr>';
+        gh += '<table>' + GEN_HEAD;
         list.forEach(function (g) { gh += genRow(g, g.r); });
         gh += '</table>';
       });
@@ -1845,7 +1850,7 @@ function tagHtml(r) {
         if (!list.length) return;
         list.sort(function (a, b) { return (a.t === '精锐' ? 0 : 1) - (b.t === '精锐' ? 0 : 1); });
         gh += '<h3 class="grp">' + r + ' 级 · ' + list.length + ' 名</h3>';
-        gh += '<table><tr><th style="width:70px;">等级</th><th style="width:110px;">武将</th><th>兵力</th><th>攻</th><th>防</th><th>速</th><th style="width:46px;">兵种</th><th style="width:100px;">技能</th><th>效果</th></tr>';
+        gh += '<table>' + GEN_HEAD;
         list.forEach(function (g) { gh += genRow(g, r); });
         gh += '</table>';
       });
@@ -1887,7 +1892,7 @@ function tagHtml(r) {
   }
   function renderEq(mode) {
     var eh = '';
-    var head = '<tr><th style="width:70px;">等级</th><th style="width:140px;">装备</th><th>部位</th><th>属性</th><th>售价</th><th>卖出可得</th><th style="width:180px;">获取来源</th></tr>';
+    var head = '<tr><th style="width:70px;">等级</th><th style="width:140px;">装备</th><th>部位</th><th>属性</th><th>售价</th><th>卖出可得</th><th style="width:205px;">获取来源</th></tr>';
     if (mode === 'slot') {
       ['武器', '防具', '饰品'].forEach(function (sl) {
         var list = EQALL.filter(function (e) { return e.slot === sl; });
