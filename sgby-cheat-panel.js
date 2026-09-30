@@ -180,11 +180,14 @@
   function toast(m) { try { showToast(m); } catch (e) { } console.log('[金手指]', m); }
   function save() { try { saveGame(); } catch (e) { } }
   function refresh() {
-    try { updateResources(); } catch (e) { }
-    try { renderGenerals(); } catch (e) { }
-    try { renderMapCities(); } catch (e) { }
-    try { renderStages(); } catch (e) { }
-    try { renderInventory(); } catch (e) { }
+    /* 游戏暴露的全局渲染函数逐个兜底调用，保证任何改动立即反映到界面 */
+    ['updateResources', 'renderGenerals', 'renderMapCities', 'renderStages', 'renderInventory',
+     'updatePlayerName', 'updatePlayerAvatar', 'renderGovBuildings', 'renderSmithy',
+     'renderTavernResult', 'refreshExchange', 'renderBattle',
+     'renderWarehouseModal', 'renderTechModal', 'renderClinicModal'
+    ].forEach(function (n) {
+      try { if (typeof window[n] === 'function') window[n](); } catch (e) { }
+    });
   }
   function commit(m) { save(); refresh(); if (m) { toast(m); fb(m); } }
   function cfgMax(k) {
