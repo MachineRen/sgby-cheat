@@ -158,7 +158,15 @@
 
     <h2>手机端：怎么做这个书签</h2>
     <div class="card">
-      <h3>书签代码（点一下出面板）</h3>
+      <h3>远程书签（推荐，约 160 字符）</h3>
+      <p class="tip">书签只负责从本页所在的 GitHub 地址加载面板脚本 —— 不再有「书签太长存不下」的问题；而且脚本更新后书签不用改，点一下加载的就是最新版。</p>
+      <button class="btn main" id="copyRemoteBookmark">复制远程书签</button>
+      <span class="tip" style="margin-left:8px;">当前长度：<b id="remoteLen">…</b></span>
+      <pre class="src" id="remoteBookmarkBox"></pre>
+      <p class="tip">注意：个别浏览器 / 游戏页面 CSP 可能拦截外链脚本（点了没反应），那就改用下面的「内嵌版书签代码」—— 完整面板塞在书签本身里，不受 CSP 限制。</p>
+    </div>
+    <div class="card">
+      <h3>内嵌版书签代码（点一下出面板）</h3>
       <p class="tip">把下面整段复制，做成浏览器书签。以后打开游戏页面点它一下就出面板 —— 含主题切换、可拖动、收起成小球，和电脑端粘贴脚本效果完全一样。</p>
       <button class="btn main" id="copyBookmark">复制书签代码</button>
       <button class="btn gray" id="showBookmark">查看代码</button>
@@ -2351,6 +2359,15 @@ $('copyJson').onclick = function () {
     };
   }
   toggle('showBookmark', 'bookmarkBox', '查看代码');
+
+  /* 远程书签：优先用页面自身的部署地址加载 panel.js（换仓库/换域名都不用改书签） */
+  var PANEL_URL = /^https:/.test(location.protocol)
+    ? location.href.replace(/[^\/]*$/, '') + 'sgby-cheat-panel.js'
+    : 'https://machineren.github.io/sgby-cheat/sgby-cheat-panel.js';
+  var remoteBm = "javascript:(function(){var s=document.createElement('script');s.src='" + PANEL_URL + "';document.body.appendChild(s)})()";
+  document.getElementById('remoteBookmarkBox').textContent = remoteBm;
+  document.getElementById('copyRemoteBookmark').onclick = function () { copy(remoteBm, this, '已复制，去做书签（仅 ' + remoteBm.length + ' 字符）'); };
+  document.getElementById('remoteLen').textContent = remoteBm.length + ' 字符';
 
   var ps = document.createElement('pre');
   ps.className = 'src';
