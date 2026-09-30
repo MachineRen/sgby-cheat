@@ -389,13 +389,13 @@
   </section>
 
   <section id="p3" class="pane">
-    <h2>武将全图鉴 · 59 名（按稀有度）</h2>
+    <h2>武将全图鉴 · 59 名 <button class="btn gray" id="genGroupBtn" style="font-size:12px;padding:4px 12px;">按兵种显示</button></h2>
     <p class="foot" style="margin:0 0 10px;">数据取自游戏 <code>ELITE_POOL</code>（29 名精锐，酒馆高级池）+ <code>TAVERN_POOL</code>（30 名杂牌）。B 级里标「精锐」的才是酒馆能抽到的高级货。</p>
     <div id="codexGen"></div>
   </section>
 
   <section id="p4" class="pane">
-    <h2>装备全图鉴 · 29 件（按稀有度）</h2>
+    <h2>装备全图鉴 · 29 件 <button class="btn gray" id="eqGroupBtn" style="font-size:12px;padding:4px 12px;">按部位显示</button></h2>
     <p class="foot" style="margin:0 0 10px;">新版统一进一个 <code>EQUIP_POOL</code>，铁匠铺刷新和关卡掉落都从这里取。倚天剑是全游戏最强武器（攻 +60，卖价 6000 两），第 14 关「灭蜀之战」稀有掉落。</p>
     <div id="codexEq"></div>
   </section>
@@ -1771,6 +1771,17 @@ var EQALL = [
   {n:'草鞋',r:'C',slot:'饰品',s:'速 +2',price:50}
 ];
 
+/* 兵种推断（与游戏源码 inferTroop 完全一致，优先级从上到下） */
+function inferTroop(name) {
+  if (/马超|吕布|张辽|马岱|公孙瓒|夏侯渊|甘宁|太史慈|骑兵/.test(name)) return 'cavalry';
+  if (/黄忠|太史慈|赵云|姜维|夏侯渊|孙尚香|猎户|弓箭手|猎人/.test(name)) return 'archer';
+  if (/诸葛亮|司马懿|周瑜|庞统|陆逊|吕蒙|郭嘉|贾诩|书生|门客|说书/.test(name)) return 'special';
+  return 'infantry';
+}
+var TROOP_NAME = { infantry: '步兵', archer: '弓兵', cavalry: '骑兵', special: '特殊' };
+var TROOP_COLOR = { infantry: '#b8a888', archer: '#5a9e6f', cavalry: '#c07830', special: '#7a68da' };
+GEN.forEach(function (g) { g.tr = inferTroop(g.n); });
+
 function tagHtml(r) {
   if (r === 'SS') return '<span class="r-ss">SS</span>';
   if (r === 'S') return '<span class="r-s">S</span>';
@@ -1779,22 +1790,50 @@ function tagHtml(r) {
 
 (function () {
   var orders = ['SS', 'S', 'A', 'B', 'C'];
-  var gh = '';
-  orders.forEach(function (r) {
-    var list = GEN.filter(function (g) { return g.r === r; });
-    if (!list.length) return;
-    list.sort(function (a, b) { return (a.t === '精锐' ? 0 : 1) - (b.t === '精锐' ? 0 : 1); });
-    gh += '<h3 class="grp">' + r + ' 级 · ' + list.length + ' 名</h3>';
-    gh += '<table><tr><th style="width:70px;">等级</th><th style="width:110px;">武将</th><th>兵力</th><th>攻</th><th>防</th><th>速</th><th style="width:100px;">技能</th><th>效果</th></tr>';
-    list.forEach(function (g) {
-      gh += '<tr class="' + r.toLowerCase() + '"><td>' + tagHtml(r) + '</td><td>' +
-        (g.t === '杂牌' ? '<span style="color:#999;">杂牌</span> ' : '<span style="color:#8b6914;">精锐</span> ') +
-        g.n + '</td><td>' + g.hp + '</td><td>' + g.atk + '</td><td>' + g.def + '</td><td>' + g.spd +
-        '</td><td>' + g.sk + '</td><td>' + g.sd + '</td></tr>';
-    });
-    gh += '</table>';
-  });
-  document.getElementById('codexGen').innerHTML = gh;
+  var TROOPS = ['cavalry', 'archer', 'special', 'infantry'];
+
+  function genRow(g, r) {
+    return '<tr class="' + r.toLowerCase() + '"><td>' + tagHtml(r) + '</td><td>' +
+      (g.t === '杂牌' ? '<span style="color:#999;">杂牌</span> ' : '<span style="color:#8b6914;">精锐</span> ') +
+      g.n + '</td><td>' + g.hp + '</td><td>' + g.atk + '</td><td>' + g.def + '</td><td>' + g.spd +
+      '</td><td><span style="color:' + TROOP_COLOR[g.tr] + ';">' + TROOP_NAME[g.tr] + '</span></td>' +
+      '<td>' + g.sk + '</td><td>' + g.sd + '</td></tr>';
+  }
+  function renderGen(mode) {
+    var gh = '';
+    if (mode === 'troop') {
+      TROOPS.forEach(function (t) {
+        var list = GEN.filter(function (g) { return g.tr === t; });
+        if (!list.length) return;
+        var rs = ['SS', 'S', 'A', 'B'].filter(function (r) { return list.some(function (g) { return g.r === r; }); });
+        list.sort(function (a, b) { return rs.indexOf(a.r) - rs.indexOf(b.r) || (a.t === '精锐' ? 0 : 1) - (b.t === '精锐' ? 0 : 1); });
+        gh += '<h3 class="grp"><span style="color:' + TROOP_COLOR[t] + ';">' + TROOP_NAME[t] + '</span> · ' + list.length + ' 名</h3>';
+        gh += '<table><tr><th style="width:70px;">等级</th><th style="width:110px;">武将</th><th>兵力</th><th>攻</th><th>防</th><th>速</th><th style="width:46px;">兵种</th><th style="width:100px;">技能</th><th>效果</th></tr>';
+        list.forEach(function (g) { gh += genRow(g, g.r); });
+        gh += '</table>';
+      });
+    } else {
+      orders.forEach(function (r) {
+        var list = GEN.filter(function (g) { return g.r === r; });
+        if (!list.length) return;
+        list.sort(function (a, b) { return (a.t === '精锐' ? 0 : 1) - (b.t === '精锐' ? 0 : 1); });
+        gh += '<h3 class="grp">' + r + ' 级 · ' + list.length + ' 名</h3>';
+        gh += '<table><tr><th style="width:70px;">等级</th><th style="width:110px;">武将</th><th>兵力</th><th>攻</th><th>防</th><th>速</th><th style="width:46px;">兵种</th><th style="width:100px;">技能</th><th>效果</th></tr>';
+        list.forEach(function (g) { gh += genRow(g, r); });
+        gh += '</table>';
+      });
+    }
+    document.getElementById('codexGen').innerHTML = gh;
+  }
+
+  var genMode = 'rarity';
+  renderGen(genMode);
+  var tg = document.getElementById('genGroupBtn');
+  if (tg) tg.onclick = function () {
+    genMode = genMode === 'rarity' ? 'troop' : 'rarity';
+    renderGen(genMode);
+    this.textContent = genMode === 'rarity' ? '按兵种显示' : '按等级显示';
+  };
 
   /* 获取来源（读自游戏源码）：关卡 20% 稀有掉落 + 铁匠铺刷新购买 */
   var STAGE_DROPS = { '太平要术': '第3关 斩杀张角', '方天画戟': '第5关 虎牢关之战', '青釭剑': '第8关 官渡之战', '连环铠': '第9关 赤壁之战', '的卢马': '第11关 夷陵之战', '七星刀': '第12关 五丈原', '诸葛连弩': '第13关 沓中之战', '倚天剑': '第14关 灭蜀之战', '孙子兵法': '第15关 金陵王气' };
@@ -1804,20 +1843,45 @@ function tagHtml(r) {
       : '<span style="color:#999;">铁匠铺刷新购买</span>';
   }
 
-  var eh = '';
-  orders.forEach(function (r) {
-    var list = EQALL.filter(function (e) { return e.r === r; });
-    if (!list.length) return;
-    eh += '<h3 class="grp">' + r + ' 级 · ' + list.length + ' 件</h3>';
-    eh += '<table><tr><th style="width:70px;">等级</th><th style="width:140px;">装备</th><th>部位</th><th>属性</th><th>售价</th><th>卖出可得</th><th style="width:180px;">获取来源</th></tr>';
-    list.forEach(function (e) {
-      eh += '<tr class="' + r.toLowerCase() + '"><td>' + tagHtml(r) + '</td><td>' + e.n +
-        '</td><td>' + e.slot + '</td><td>' + e.s + '</td><td>' + e.price.toLocaleString() + ' 两</td><td>' +
-        Math.floor(e.price * 0.3).toLocaleString() + ' 两</td><td style="font-size:12px;">' + eqAcq(e.n) + '</td></tr>';
-    });
-    eh += '</table>';
-  });
-  document.getElementById('codexEq').innerHTML = eh;
+  function eqRow(e, r) {
+    return '<tr class="' + r.toLowerCase() + '"><td>' + tagHtml(r) + '</td><td>' + e.n +
+      '</td><td>' + e.slot + '</td><td>' + e.s + '</td><td>' + e.price.toLocaleString() + ' 两</td><td>' +
+      Math.floor(e.price * 0.3).toLocaleString() + ' 两</td><td style="font-size:12px;">' + eqAcq(e.n) + '</td></tr>';
+  }
+  function renderEq(mode) {
+    var eh = '';
+    var head = '<tr><th style="width:70px;">等级</th><th style="width:140px;">装备</th><th>部位</th><th>属性</th><th>售价</th><th>卖出可得</th><th style="width:180px;">获取来源</th></tr>';
+    if (mode === 'slot') {
+      ['武器', '防具', '饰品'].forEach(function (sl) {
+        var list = EQALL.filter(function (e) { return e.slot === sl; });
+        if (!list.length) return;
+        list.sort(function (a, b) { return ['SS', 'S', 'A', 'B', 'C'].indexOf(a.r) - ['SS', 'S', 'A', 'B', 'C'].indexOf(b.r); });
+        eh += '<h3 class="grp">' + sl + ' · ' + list.length + ' 件</h3>';
+        eh += '<table>' + head;
+        list.forEach(function (e) { eh += eqRow(e, e.r); });
+        eh += '</table>';
+      });
+    } else {
+      orders.forEach(function (r) {
+        var list = EQALL.filter(function (e) { return e.r === r; });
+        if (!list.length) return;
+        eh += '<h3 class="grp">' + r + ' 级 · ' + list.length + ' 件</h3>';
+        eh += '<table>' + head;
+        list.forEach(function (e) { eh += eqRow(e, r); });
+        eh += '</table>';
+      });
+    }
+    document.getElementById('codexEq').innerHTML = eh;
+  }
+
+  var eqMode = 'rarity';
+  renderEq(eqMode);
+  var te = document.getElementById('eqGroupBtn');
+  if (te) te.onclick = function () {
+    eqMode = eqMode === 'rarity' ? 'slot' : 'rarity';
+    renderEq(eqMode);
+    this.textContent = eqMode === 'rarity' ? '按部位显示' : '按稀有度显示';
+  };
 })();
 </script>
 <script>
