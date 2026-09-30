@@ -1796,16 +1796,24 @@ function tagHtml(r) {
   });
   document.getElementById('codexGen').innerHTML = gh;
 
+  /* 获取来源（读自游戏源码）：关卡 20% 稀有掉落 + 铁匠铺刷新购买 */
+  var STAGE_DROPS = { '太平要术': '第3关 斩杀张角', '方天画戟': '第5关 虎牢关之战', '青釭剑': '第8关 官渡之战', '连环铠': '第9关 赤壁之战', '的卢马': '第11关 夷陵之战', '七星刀': '第12关 五丈原', '诸葛连弩': '第13关 沓中之战', '倚天剑': '第14关 灭蜀之战', '孙子兵法': '第15关 金陵王气' };
+  function eqAcq(n) {
+    return STAGE_DROPS[n]
+      ? STAGE_DROPS[n] + ' ·20% 掉落<br><span style="color:#999;">铁匠铺可刷</span>'
+      : '<span style="color:#999;">铁匠铺刷新购买</span>';
+  }
+
   var eh = '';
   orders.forEach(function (r) {
     var list = EQALL.filter(function (e) { return e.r === r; });
     if (!list.length) return;
     eh += '<h3 class="grp">' + r + ' 级 · ' + list.length + ' 件</h3>';
-    eh += '<table><tr><th style="width:70px;">等级</th><th style="width:140px;">装备</th><th>部位</th><th>属性</th><th>售价</th><th>卖出可得</th></tr>';
+    eh += '<table><tr><th style="width:70px;">等级</th><th style="width:140px;">装备</th><th>部位</th><th>属性</th><th>售价</th><th>卖出可得</th><th style="width:180px;">获取来源</th></tr>';
     list.forEach(function (e) {
       eh += '<tr class="' + r.toLowerCase() + '"><td>' + tagHtml(r) + '</td><td>' + e.n +
         '</td><td>' + e.slot + '</td><td>' + e.s + '</td><td>' + e.price.toLocaleString() + ' 两</td><td>' +
-        Math.floor(e.price * 0.3).toLocaleString() + ' 两</td></tr>';
+        Math.floor(e.price * 0.3).toLocaleString() + ' 两</td><td style="font-size:12px;">' + eqAcq(e.n) + '</td></tr>';
     });
     eh += '</table>';
   });
