@@ -38,4 +38,16 @@
 
 ## 更新方式
 
-改完 `/Users/ren/WorkBuddy/2026-09-30-13-54-41/sgby-cheat.html` 与 `sgby-cheat-panel.js` 后，重新拷贝到本目录并 commit + push，Pages 会自动重新发布。
+1. 改 `sgby-cheat.html` 与 `sgby-cheat-panel.js`（**注意**：`sgby-cheat.html` 内嵌两份面板源码 —— `#cheatSrc` 与 `#bookmarkSrc`，改一处必须同步另一处，且书签版不能有换行）
+2. 拷贝到本目录：`cp sgby-cheat.html index.html && cp sgby-cheat-panel.js sgby-cheat-panel.js`
+3. 提交推送，Pages 会自动重新发布
+
+本机 `git push` 直连 github.com:443 常被网络环境阻断，兜底通道是 REST API：
+
+```bash
+cd /Users/ren/WorkBuddy/2026-09-30-13-54-41
+GH_TOKEN=xxx node gh-push.js            # 默认推 index.html + sgby-cheat-panel.js
+GH_MSG="提交信息" GH_TOKEN=xxx node gh-push.js index.html
+```
+
+脚本按 git blob sha1 比对远端，内容相同会自动跳过；token 只从环境变量读，不落盘。推送后 Pages 构建约需 1–3 分钟。
