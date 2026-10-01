@@ -715,7 +715,7 @@ function injectStyle() {
     '#sgbyCheatPanel .sg-inp,#sgbyCheatPanel .sg-sel{background:var(--sg-inp);color:var(--sg-tx);border:1px solid var(--sg-inpLine);border-radius:4px;padding:3px 6px;font-size:12px;width:96px;outline:none}',
     '#sgbyCheatPanel .sg-sel{padding:3px 4px}',
     '#sgbyCheatPanel .sg-btn{background:var(--sg-btn);color:var(--sg-btnTx);border:1px solid var(--sg-inpLine);border-radius:4px;padding:3px 9px;font-size:12px;cursor:pointer;margin-left:5px;white-space:nowrap}',
-    '#sgbyCheatPanel .sg-pri{background:var(--sg-pri);color:var(--sg-priTx);border-color:var(--sg-pri);font-weight:bold}',
+    '#sgbyCheatPanel .sg-pri{background:var(--sg-pri);color:var(--sg-priTx);border-color:var(--sg-pri);font-weight:bold}','#sgbyCheatPanel .sg-btn.on{background:var(--sg-pri);color:var(--sg-priTx);border-color:var(--sg-pri);font-weight:bold;box-shadow:0 0 0 1px var(--sg-pri) inset}',
     '#sgbyCheatPanel .sg-danger{background:#8b2f2f;color:#fff;border-color:#8b2f2f}',
     '#sgbyCheatPanel .sg-tip{color:var(--sg-dim);font-size:11px;margin-top:4px;line-height:1.5}',
     '#sgbyCheatPanel .sg-group{display:flex;gap:4px;margin:6px 0;flex-wrap:wrap}',
@@ -1018,7 +1018,7 @@ function sec(t) {
 function row(label, ctrl) {
   return '<div class="sg-row"><span>' + label + '</span><span>' + ctrl + '</span></div>';
 }
-function btn(act, key, text, pri) {
+function markBoost(mult) { Array.prototype.forEach.call(document.querySelectorAll('#sgbyCheatPanel button[data-act="boost"]'), function (b) { if (b.getAttribute('data-key') === String(mult)) b.classList.add('on'); else b.classList.remove('on'); }); } function btn(act, key, text, pri) {
   return '<button class="sg-btn' + (pri ? ' sg-pri' : '') + '" data-act="' + act + '"' +
     (key !== null && key !== undefined ? ' data-key="' + key + '"' : '') + '>' + text + '</button>';
 }
@@ -1120,7 +1120,7 @@ html += '<div class="sg-tip">若改过等级后战斗伤害只有 1 点，点上
 html += '<div class="sg-tip" style="margin:8px 0 2px;">兵力不参与伤害：伤害 =（攻击 − 敌方防御）× 0.6；且主公等级越高敌人越强（难度系数 1 + (主公等级−1)×3%）。</div>';
 html += '<div class="sg-group">' +
   '<span class="sg-tip" style="margin:0 5px 0 0;">攻击倍率</span>' +
-  btn('boost', '1', '还原') + btn('boost', '5', '×5') + btn('boost', '20', '×20', true) + '</div>';
+  btn('boost', '1', '还原') + btn('boost', '5', '×5') + btn('boost', '20', '×20') + '</div>';
 
 html += sec('道具 / 装备');
 html += row('材料', '<select class="sg-sel" id="ck_mat" style="width:130px;">' +
@@ -1147,7 +1147,7 @@ html += '</div></div>';
 
 document.body.insertAdjacentHTML('beforeend', html);
 
-var panel = document.getElementById('sgbyCheatPanel');
+var panel = document.getElementById('sgbyCheatPanel'); markBoost((function () { try { return localStorage.getItem('sgby_atkmult') || '1'; } catch (e) { return '1'; } })());
 
 Array.prototype.forEach.call(panel.querySelectorAll('input'), function (el) {
   el.addEventListener('input', function () { if (el.id) dirty[el.id] = 1; });
@@ -1207,7 +1207,7 @@ panel.addEventListener('click', function (e) {
   if (act === 'pity') { pityNow(); return; }
   if (act === 'maxgen') { maxGeneralsLevel(); return; }
   if (act === 'recalcgen') { recalcAllStats(); return; }
-  if (act === 'boost') { applyAtkMult(key); return; }
+  if (act === 'boost') { applyAtkMult(key); markBoost(key); try { localStorage.setItem('sgby_atkmult', key); } catch (e) { } return; }
   if (act === 'addmat') { addMaterial(txt('ck_mat'), val('ck_matCount')); return; }
   if (act === 'allmat') { addAllMaterials(val('ck_matCount')); return; }
   if (act === 'addeq') { addEquip(Number(txt('ck_eq'))); return; }
